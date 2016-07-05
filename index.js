@@ -19,7 +19,15 @@ function handleMessage(uData, uID, cID, text, e){
 	// I can hear it already: "isn't that inefficient?"
 	// Yes. It is. But channel state might change and I don't want to deal with cache invalidation
 	if(settings.listenChannelNames && settings.listenChannelNames.indexOf(client.channels[cID].name) == -1) return;
-	console.log('"'+text+'"');
+	// TODO: customizable command prefix / regex
+	var comName = /\s*!(\S*)/.exec(text);
+	if(!comName) return;
+	comName = comName[1];
+	switch(comName){
+		case "summon":
+			client.joinVoiceChannel(client.servers[client.channels[cID].guild_id].members[uID].voice_channel_id)
+			break;
+	}
 }
 
 client.on('ready',main);
