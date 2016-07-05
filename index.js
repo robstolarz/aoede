@@ -10,7 +10,9 @@ function main(){
 	console.log('(Re)connected!');
 }
 
+var clientShouldConnect = true;
 function connect(){
+	if(!clientShouldConnect) return;
 	console.log('(Re)connecting to server...');
 	client.connect();
 }
@@ -29,6 +31,12 @@ function handleMessage(uData, uID, cID, text, e){
 			break;
 	}
 }
+
+// gracefully disconnect when asked to exit
+require('death')(function(){
+	clientShouldConnect = false;
+	client.disconnect();
+});
 
 client.on('ready',main);
 client.on('disconnect',connect);

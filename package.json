@@ -9,6 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "death": "^1.0.0",
     "discord.io": "^1.13.3"
   }
 }
