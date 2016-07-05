@@ -27,7 +27,7 @@ function handleMessage(uData, uID, cID, text, e){
 	comName = comName[1];
 	switch(comName){
 		case "summon":
-			client.joinVoiceChannel(client.servers[client.channels[cID].guild_id].members[uID].voice_channel_id)
+			client.joinVoiceChannel(client.servers[client.channels[cID].guild_id].members[uID].voice_channel_id);
 			break;
 	}
 }
