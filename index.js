@@ -91,6 +91,7 @@ function handleMessage(uData, uID, cID, text, e){
 		case "summon":
 			var vcID = client.servers[client.channels[cID].guild_id].members[uID].voice_channel_id;
 			var oldVcID = client.servers[client.channels[cID].guild_id].members[client.id].voice_channel_id;
+			if((playersByVcID[vcID]||{}).isPlaying) return; // fail to summon to channels already occupied
 			client.joinVoiceChannel(vcID);
 			// if it's switching voice channels, we need to switch the references too
 			// remember: if your code needs to reference its player, it needs to keep a reference and not just use its ID
