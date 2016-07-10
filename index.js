@@ -41,15 +41,15 @@ function playFile(vcID, filename, then){
 		console.log("joined channel");
 		client.getAudioContext({channel: vcID, stereo: stereo}, function(context){
 			console.log(context);
+			playersByVcID[vcID] = playersByVcID[vcID] || {};
+			var reference = playersByVcID[vcID]; // this will always point to the right one ;)
 			ffmpeg.stdout.once('readable', function(){
 				console.log("sending contents");
 				context.send(ffmpeg.stdout);
 				// create new player. (sorry this is here, sorry it looks so bad!)
-				playersByVcID[vcID] = playersByVcID[vcID] || {};
-				playersByVcID[vcID].stdin = ffmpeg.stdin;
-				playersByVcID[vcID].volume = defaultVolume;
+				reference.stdin = ffmpeg.stdin;
+				reference.volume = defaultVolume;
 			});
-			var reference = playersByVcID[vcID]; // this will always point to the right one ;)
 			ffmpeg.stdout.once('end', function(){
 				reference.isPlaying = false;
 				if(then) return then();
