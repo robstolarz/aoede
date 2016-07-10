@@ -45,10 +45,26 @@ function playFile(vcID, filename, then){
 			var reference = playersByVcID[vcID]; // this will always point to the right one ;)
 			ffmpeg.stdout.once('readable', function(){
 				console.log("sending contents");
-				context.send(ffmpeg.stdout);
+				//context.send(ffmpeg.stdout);
 				// create new player. (sorry this is here, sorry it looks so bad!)
 				reference.stdin = ffmpeg.stdin;
 				reference.volume = defaultVolume;
+			});
+			var buf = new Buffer('');
+			ffmpeg.stdout.on('readable',function(){
+				var data = ffmpeg.stdout.read();
+				if(!data) return;
+				buf = Buffer.concat([buf,data]);
+			});
+			ffmpeg.stdout.once('end', function(){
+				var stream = new require('stream').Transform({
+					transform: function(c,e,k){
+						k(null,c);
+					}
+				});
+				context.send(stream);
+				stream.write(buf);
+				stream.end();
 			});
 			ffmpeg.stdout.once('end', function(){
 				reference.isPlaying = false;
