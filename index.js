@@ -34,7 +34,9 @@ function playFile(vcID, filename, then){
 	// set up arguments to ffmpeg
 	console.log("playing file " + filename);
 	var defaultVolume = getVolume(vcID);
-	var ffArgs = ['-i', filename, '-f', 's16le', '-ar', '48000', '-af', 'volume='+defaultVolume, '-ac', stereo?2:1, 'pipe:1', '-stdin'];
+	var hzOut = 48000; // this should never change ..?
+	var bufferSeconds = 5; // TODO: make bufferSeconds configurable
+	var ffArgs = ['-i', filename, '-f', 's16le', '-ar', ''+hzOut, '-af', 'volume='+defaultVolume, '-ac', stereo?2:1, 'pipe:1', '-stdin'];
 	var ffmpeg = spawn((settings.ffmpeg||{}).binaryLocation || 'ffmpeg', ffArgs, {stdio: ['pipe', 'pipe', 'ignore']});
 	console.log("spawned ffmpeg");
 	client.joinVoiceChannel(vcID, function(){
@@ -43,14 +45,18 @@ function playFile(vcID, filename, then){
 			console.log(context);
 			playersByVcID[vcID] = playersByVcID[vcID] || {};
 			var reference = playersByVcID[vcID]; // this will always point to the right one ;)
+			// TODO: verify this actually buffers bufferSeconds worth of music
+			var bufferHighWaterMark = hzOut * bufferSeconds * stereo?2:1;
+			var bufferStream = ffmpeg.stdout.pipe(require('through2-buffer')(bufferHighWaterMark));
 			ffmpeg.stdout.once('readable', function(){
-				console.log("sending contents");
-				context.send(ffmpeg.stdout);
 				// create new player. (sorry this is here, sorry it looks so bad!)
 				reference.stdin = ffmpeg.stdin;
 				reference.volume = defaultVolume;
+				// immediately pipe this data to a bufferStream
+				console.log("starting to pipe");
+				context.send(bufferStream);
 			});
-			ffmpeg.stdout.once('end', function(){
+			bufferStream.once('end', function(){
 				reference.isPlaying = false;
 				if(then) return then();
 			});
